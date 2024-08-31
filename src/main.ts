@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { ValidationPipe } from './common/pipes/validation.pipe';
 
 async function start() {
   const PORT = process.env.PORT || 3000;
@@ -20,6 +22,9 @@ async function start() {
       operationsSorter: 'alpha',
     },
   });
+
+  app.useGlobalFilters(new GlobalExceptionFilter());
+  app.useGlobalPipes(new ValidationPipe());
 
   await app.listen(PORT, () => Logger.log(`Server started on ${PORT} port`));
 
