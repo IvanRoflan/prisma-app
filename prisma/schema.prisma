@@ -13,8 +13,7 @@ model Product {
   description String? @db.VarChar()
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  categoryId String @db.Uuid
-  category Category @relation(fields: [categoryId], references: [id])
+  categories ProductCategory[]
   prices Price[]
   storeStocks StoreStock[]
   warehouseStocks WarehouseStock[]
@@ -27,9 +26,20 @@ model Category {
   name String @db.VarChar()
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  products Product[]
+  products ProductCategory[]
 
   @@map("categories")
+}
+
+model ProductCategory {
+  productId String @db.Uuid
+  categoryId String @db.Uuid
+
+  product Product @relation(fields: [productId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@id([productId, categoryId])
+  @@map("prodcut_categories")
 }
 
 model Store {
@@ -38,6 +48,7 @@ model Store {
   location String @db.VarChar()
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  prices Price[]
   storeStocks StoreStock[]
 
   @@map("stores")
@@ -49,6 +60,8 @@ model Price {
   currency String @db.VarChar()
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  storeId String @db.Uuid
+  store Store @relation(fields: [storeId], references: [id])
   productId String @db.Uuid
   product Product @relation(fields: [productId], references: [id])
 

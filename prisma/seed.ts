@@ -4,14 +4,18 @@ const prisma = new PrismaClient();
 
 async function main() {
   // create categories
-  const [electronicsCategory, clothingCategory] = await Promise.all([
-    prisma.category.create({
-      data: { name: 'Electronics' },
-    }),
-    prisma.category.create({
-      data: { name: 'Clothing ' },
-    }),
-  ]);
+  const [electronicsCategory, clothingCategory, menCategory] =
+    await Promise.all([
+      prisma.category.create({
+        data: { name: 'Electronics' },
+      }),
+      prisma.category.create({
+        data: { name: 'Clothing ' },
+      }),
+      prisma.category.create({
+        data: { name: 'Men ' },
+      }),
+    ]);
 
   // create products
   const [phoneProduct, tshirtProduct] = await Promise.all([
@@ -19,14 +23,34 @@ async function main() {
       data: {
         name: 'IPhone',
         description: 'Latest model',
-        categoryId: electronicsCategory.id,
       },
     }),
     prisma.product.create({
       data: {
         name: 'Trasher',
         description: 'Posers t-shirt',
+      },
+    }),
+  ]);
+
+  // set categories to products
+  await Promise.all([
+    prisma.productCategory.create({
+      data: {
+        categoryId: electronicsCategory.id,
+        productId: phoneProduct.id,
+      },
+    }),
+    prisma.productCategory.create({
+      data: {
         categoryId: clothingCategory.id,
+        productId: tshirtProduct.id,
+      },
+    }),
+    prisma.productCategory.create({
+      data: {
+        categoryId: menCategory.id,
+        productId: tshirtProduct.id,
       },
     }),
   ]);
@@ -51,15 +75,17 @@ async function main() {
   await Promise.all([
     prisma.price.create({
       data: {
-        amount: 699.99,
-        currency: 'USD',
+        amount: 80000.0,
+        currency: 'RUB',
+        storeId: streetStore.id,
         productId: phoneProduct.id,
       },
     }),
     prisma.price.create({
       data: {
-        amount: 75000.0,
-        currency: 'RUB',
+        amount: 79.99,
+        currency: 'USD',
+        storeId: mallStore.id,
         productId: phoneProduct.id,
       },
     }),
@@ -67,6 +93,7 @@ async function main() {
       data: {
         amount: 29.99,
         currency: 'USD',
+        storeId: mallStore.id,
         productId: tshirtProduct.id,
       },
     }),
