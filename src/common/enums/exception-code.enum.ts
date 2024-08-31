@@ -9,4 +9,5 @@ export enum ExceptionCode {
   MUST_BE_UUID = 'Параметр должен иметь тип UUID',
   MUST_BE_ENUM = 'Параметр должен быть значением перечисления',
   MUST_BE_BOOLEAN = 'Параметр должен быть булевым значением',
+  MUST_BE_ARRAY = 'Параметр должен быть массивом',
 }
