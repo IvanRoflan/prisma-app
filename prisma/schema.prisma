@@ -65,6 +65,7 @@ model Price {
   productId String @db.Uuid
   product Product @relation(fields: [productId], references: [id])
 
+  @@unique([productId, storeId, currency])
   @@map("prices")
 }
 
@@ -78,6 +79,7 @@ model StoreStock {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([productId, storeId])
   @@map("store_stocks")
 }
 
@@ -89,5 +91,6 @@ model WarehouseStock {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([productId])
   @@map("warehouse_stocks")
 }
