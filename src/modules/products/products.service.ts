@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { SingleProductRepresentation } from './representations/single-product.representation';
+import { ProductRepresentation } from './representations/product.representation';
+import { GetPaginatedProductsDto } from './dto/get-paginated-products.dto';
+import { PageMetaDto } from 'src/common/dto/page-meta.dto';
+import { PageRepresentation } from 'src/common/representations/page.response';
 
 @Injectable()
 export class ProductsService {
@@ -21,8 +24,62 @@ export class ProductsService {
     });
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async getPaginated(dto: GetPaginatedProductsDto) {
+    const { storeId, categoryId, skip, take } = dto;
+    const where = {
+      ...(categoryId && {
+        categories: {
+          some: {
+            categoryId,
+          },
+        },
+      }),
+      ...(storeId && {
+        storeStocks: {
+          some: {
+            storeId,
+          },
+        },
+      }),
+    };
+
+    const [count, data] = await Promise.all([
+      this.prisma.product.count({ where }),
+      this.prisma.product.findMany({
+        where,
+        skip,
+        take,
+        include: {
+          categories: { select: { category: { select: { name: true } } } },
+          prices: {
+            where: storeId ? { storeId } : undefined,
+            select: {
+              amount: true,
+              currency: true,
+              store: { select: { id: true, name: true } },
+            },
+          },
+          storeStocks: {
+            where: storeId ? { storeId } : undefined,
+            select: {
+              quantity: true,
+              store: { select: { id: true, name: true } },
+            },
+          },
+          warehouseStocks: true,
+        },
+      }),
+    ]);
+
+    const pageMeta = new PageMetaDto({
+      pageOptionsDto: dto,
+      itemCount: count,
+    });
+
+    return new PageRepresentation(
+      data.map((it) => new ProductRepresentation(it)),
+      pageMeta,
+    );
   }
 
   async getById(id: string) {
@@ -47,34 +104,7 @@ export class ProductsService {
       },
     });
 
-    const categories = data.categories.map((it) => it.category.name);
-    const prices = data.prices.map((it) => ({
-      amount: +it.amount,
-      currency: it.currency,
-      storeId: it.store.id,
-      storeName: it.store.name,
-    }));
-    const storeLeftovers = data.storeStocks.map((it) => ({
-      quantity: it.quantity,
-      storeId: it.store.id,
-      storeName: it.store.name,
-    }));
-    const warehouseLeftovers = data.warehouseStocks.map((it) => ({
-      id: it.id,
-      quantity: it.quantity,
-    }));
-
-    const res: SingleProductRepresentation = {
-      id: data.id,
-      name: data.name,
-      description: data.description,
-      categories,
-      prices,
-      storeLeftovers,
-      warehouseLeftovers,
-    };
-
-    return res;
+    return new ProductRepresentation(data);
   }
 
   async update(id: string, dto: UpdateProductDto) {
