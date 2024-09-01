@@ -73,7 +73,7 @@ export class StoresController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Update store' })
+  @ApiOperation({ summary: 'Delete store' })
   @ApiOkResponse({ type: OkResponseRepresentation })
   async remove(@Param() { id }: UuidDto) {
     await this.storesService.remove(id);
